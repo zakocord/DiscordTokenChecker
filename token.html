@@ -1,49 +1,69 @@
 <!DOCTYPE html>
 <html>
-<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
-
 <head>
     <title>Token Checker</title>
-</head>
-
-<body>
-
-
     <style>
         body {
+            font-family: 'Roboto', sans-serif;
             background-image: url('https://get.wallhere.com/photo/selective-coloring-anime-girls-anime-monochrome-simple-background-black-background-2130585.jpg');
             background-repeat: no-repeat;
             background-attachment: fixed;
             background-size: 100% 100%;
+            color: white;
+            text-align: center;
+            padding-top: 50px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
         }
     </style>
+</head>
+<body>
+    <h1>Token Checker</h1>
+    <p>Select your <b>tokens.txt</b> file:</p>
+    <input type="file" id="fileInput">
+    <button onclick="checkTokens()">Check Tokens</button>
+    <div id="results"></div>
 
-    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-        <center>
-            <h1>
-                <font color="white">Token Checker</font>
-            </h1>
-            <div id="title">
-                <font color="white">Discord girin Token</div>
-            <input id="token" type="text" name="token">
-            <button type="submit" name="submit" onclick="submit()">Check</button>
-            <div id="response"></div>
-            By BlacJac | github.com/ScriptHUBofficial
-    </div>
     <script>
-        function submit() {
-            var input = document.getElementById("token").value;
-            let xhr = new XMLHttpRequest();
-            xhr.open('GET', 'https://discordapp.com/api/v9/users/@me/guilds', true);
-            xhr.setRequestHeader('Authorization', `${input}`)
-            xhr.onload = function() {
-                if (xhr.response == '{"message": "401: Unauthorized", "code": 0}') {
-                    document.getElementById("response").innerHTML = "<br />Geçersiz Token"
-                } else {
-                    document.getElementById("response").innerHTML = "<br />Geçerli Token"
-                }
-            }
-            xhr.send();
+        function checkTokens() {
+            const fileInput = document.getElementById('fileInput');
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = "";
 
+            if (!fileInput.files.length) {
+                alert("Please select a file.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n').map(line => line.trim()).filter(line => line);
+                lines.forEach(token => {
+                    let masked = token.substring(0, 3) + "*****";
+                    let xhr = new XMLHttpRequest();
+                    xhr.open('GET', 'https://discord.com/api/v9/users/@me', true);
+                    xhr.setRequestHeader('Authorization', token);
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            resultsDiv.innerHTML += `<p>${masked} | Valid</p>`;
+                        } else if (xhr.status === 401) {
+                            resultsDiv.innerHTML += `<p>${masked} | Invalid</p>`;
+                        } else if (xhr.status === 403) {
+                            resultsDiv.innerHTML += `<p>${masked} | Locked</p>`;
+                        } else {
+                            resultsDiv.innerHTML += `<p>${masked} | Unknown (${xhr.status})</p>`;
+                        }
+                    };
+                    xhr.send();
+                });
+            };
+
+            reader.readAsText(file);
         }
     </script>
+</body>
+</html>
